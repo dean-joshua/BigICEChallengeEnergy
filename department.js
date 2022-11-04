@@ -1,5 +1,6 @@
 const baseURL = "https://collectionapi.metmuseum.org/public/collection/v1/departments";
 const searchURL = "https://collectionapi.metmuseum.org/public/collection/v1/search?departmentId=";
+const objectUrl = "https://collectionapi.metmuseum.org/public/collection/v1/objects/";
 
 export default class Department {
     constructor(ulID, objectsectionID, loadingId) {
@@ -29,14 +30,11 @@ export default class Department {
         this.outputElement.style.display = "initial";
         this.loadingElement.style.display = "none";
 
-        // get the objects based on a departmentID
-        this.objects = await this.makeRequest(searchURL + this.departments[0].departmentId + "&q=*");
 
         // test the returns
         console.log(this.departments);
         console.log(this.objects);
 
-        //this.renderList(this.departments);
         this.clickableList(this.departments, this.ulID, this.departmentSelected.bind(this));
     }
 
@@ -69,12 +67,65 @@ export default class Department {
         })
     }
 
-    departmentSelected(departmentId){
+    async departmentSelected(departmentName){
+        console.log(departmentName);
+        try {
+            const department = this.departments.find((item) => item.displayName === departmentName);
+            if (!department) {
+                throw new Error("Department not found");
+            }
 
+            this.outputElement.innerHTML = this.pageTemplate();
+            this.outputElement.querySelector(".department-name").innerHTML = department.displayName;
+
+            // Get a list of object Ids
+            const objects = await this.makeRequest(searchURL + department.departmentId + "&q=*");
+            const objectIds = objects.objectIDs;
+
+            // reduce the list to size 20
+            objectIds.length = 20;
+
+            // Convert the objectIds into urls and display them
+            const artwork = await this.getListDetails(objectIds);
+            this.renderList(artwork, this.artworkTemplate, ".department-artwork");
+
+        } catch (err) {
+            console.log(err);
+        }
     }
 
-    renderList(list) {
-        const element = document.getElementById(this.ulID);
-        element.innerHTML = this.departments.map((department) => `<li>${department.displayName}</li>`).join("");
+    async getListDetails(list) {
+        //Promise.all(listOfPromises)
+        const details = await Promise.all(list.map((url) => this.makeRequest(objectUrl + url)));
+        //console.log(details);
+        return details;
+    }
+
+    pageTemplate() {
+        return `<h2 class='department-name'></h2>
+        <p class='crawl'></p>
+        <section class='Artwork'>
+            <h3>Artwork</h3>
+            <ul class='detail-list department-artwork'></ul>
+        </section>
+        `;
+    }
+
+    artworkTemplate(artwork){
+        return`
+        <li>
+            <h4 class='art-name'>${artwork.title}</h4>
+            <img class='art-img' src='${artwork.primaryImageSmall}'>
+            <p>Artist Name:${artwork.artistDisplayName}</p>
+            <p>Culture:${artwork.culture}</p>
+        </li>
+        `;
+    }
+
+    renderList(list, template, outputId){
+        const element = document.querySelector(outputId);
+        element.innerHTML = "";
+        const htmlString = list.map((item)=>template(item));
+        element.innerHTML = htmlString.join("");
     }
 }

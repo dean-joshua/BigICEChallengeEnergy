@@ -56,22 +56,33 @@ main {
 @keyframes blink {
     0% {
         opacity: 1;
-        color: var(--primary-color);
+        color: var(--red);
     }
 
     50% {
         opacity: 0.3;
-        color: var(--secondary-color);
+        color: var(--yellow);
     }
 
     100% {
         opacity: 1;
-        color: var(--primary-color);
+        color: var(--red);
     }
 }
 
 .loading {
     animation: blink 1s infinite;
+}
+
+.department-name {
+    color: black;
+}
+
+.department-name h1,
+h2,
+h3,
+h4 {
+    color: black;
 }
 
 .department-list {
@@ -98,6 +109,24 @@ main {
 
 .active {
     background-color: var(--orange);
+}
+
+.detail-list {
+    list-style-type: none;
+    padding-left: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.detail-list li {
+    border: 1px solid;
+    padding: 1em;
+    width: 45%;
+    flex: 1 1 15em;
+}
+
+.art-img{
+    width: 100px;
 }
 
 @media screen and (min-width: 40em) {
